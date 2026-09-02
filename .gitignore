@@ -1,0 +1,19 @@
+# Built wheels bundled into the extension (~115 MB, regenerate with
+# build_wheels.py - they're derived from the illusion checkout, not source).
+illusion_randomizer/wheels/
+
+# Packaged extension zips
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
