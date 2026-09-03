@@ -11,6 +11,10 @@ attaches to its randomizer nodes, keyed by GUI node instead of worker node, and
 records which stages have pending edits. panel.py and preview.py use that to
 say "click Change Scene" instead of leaving the user guessing.
 
+The same idea one step further out: edits that are baked in when the models are
+imported (the Asset instance counts) are tracked separately, since not even
+Change Scene applies them - they highlight Load Assets until it runs.
+
 Kept import-light and dependency-free (no bpy, no spec_io) so live.py, panel.py
 and preview.py can all import it without the circular-import dance described in
 live.py's docstring.
@@ -30,8 +34,9 @@ STAGE_CAMERA = "camera"
 #   Asset          - its only tunable field is Scale, and that one needs no
 #                    Change Scene: _apply_model_scales() re-scales the loaded
 #                    meshes in place on every sync, so Preview Scene shows it.
-#                    Every other Asset field re-imports geometry and has no
-#                    callback at all - those need Load Assets. Either way
+#                    Every other Asset field re-imports geometry - the instance
+#                    counts go through live.on_reload_required and the reload
+#                    flag below, the rest have no callback at all. Either way
 #                    there is nothing for Change Scene to defer, so leaving
 #                    Asset out makes mark_edited() a no-op for it.
 #   Physics        - not a randomizer node; runs after randomize() in both
@@ -61,6 +66,29 @@ STAGE_LABELS = {
 # document, and a stale flag surviving in the .blend would be worse than
 # useless.
 _pending = set()
+
+
+# Set when a field that is baked into the imported models is edited. Separate
+# from _pending because no amount of re-randomizing applies it: only a fresh
+# Load Assets does, so Change Scene must not clear it.
+_reload_pending = False
+
+
+def mark_reload_needed() -> None:
+    """Record an edit that only re-importing the models can apply."""
+    global _reload_pending
+    _reload_pending = True
+
+
+def clear_reload_needed() -> None:
+    """Called once Load Assets has re-imported everything."""
+    global _reload_pending
+    _reload_pending = False
+
+
+def reload_needed() -> bool:
+    """Whether an edit is waiting on a Load Assets."""
+    return _reload_pending
 
 
 def mark_edited(bl_idname: str) -> None:

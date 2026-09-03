@@ -25,7 +25,7 @@
     &nbsp;&bull;&nbsp;
     <a href="docs/GUIDE.md">Guide</a>
     &nbsp;&bull;&nbsp;
-    <a href="https://gitlab.com/telekinesis/blender-extension">GitLab</a>
+    <a href="https://github.com/telekinesis-ai/telekinesis-illusion-blender-extension">GitHub</a>
     &nbsp;&bull;&nbsp;
     <a href="https://discord.gg/S5v8bYAnc6">Discord</a>
     &nbsp;&bull;&nbsp;
@@ -37,15 +37,11 @@
   </p>
 </div>
 
-# Telekinesis - Illusion Randomizer Tree Blender Extension
+# `telekinesis-illusion` Randomizer Tree Blender Extension
 
 A Blender node-graph editor for building and tuning
-[Telekinesis Illusion](https://gitlab.com/telekinesis/illusion) synthetic-data
+[`telekinesis-illusion`](https://gitlab.com/telekinesis/illusion) synthetic-data
 specs, with a live in-Blender preview.
-
-Build a randomizer tree, click **Load Assets**, then tune fields and watch the
-scene re-randomize in the viewport. When you're happy, export the YAML spec
-and run the real generation from it.
 
 Open source under [GPL-3.0-or-later](LICENSE).
 
@@ -57,7 +53,7 @@ Full documentation: [Telekinesis Agentic OS: Illusion](https://docs.telekinesis.
 
 You also need an `telekinesis-illusion` checkout with its assets on disk - the extension
 ships no 3D assets, and without them the Material Randomizer's type list is
-empty and `Load Assets` fails on missing model paths. See
+empty and **Load Assets** fails on missing model paths. See
 [docs/GUIDE.md](docs/GUIDE.md#assets).
 
 ## Installation
@@ -67,7 +63,7 @@ then either drag it onto an open Blender window or use
 **Edit > Preferences > Add-ons > ▼ > Install from Disk…**
 
 Point the add-on at your illusion checkout's asset directory so model and HDRI
-paths resolve:
+paths resolve. You can set it from Blender in **Edit > Preferences > Add-ons > ▼ Illusion Randomizer Tree > Asset Directory** or with `bpy`:
 
 ```python
 import bpy
@@ -76,9 +72,7 @@ prefs.asset_directory = r'C:\path\to\illusion\assets'
 bpy.ops.wm.save_userpref()
 ```
 
-Or set it in `Edit > Preferences > Add-ons > Illusion Randomizer Tree`. See
-[docs/GUIDE.md](docs/GUIDE.md#first-time-setup) for why it won't show under the
-Official/Community/Testing tabs.
+
 
 ## Quickstart
 
@@ -109,6 +103,13 @@ See [docs/GUIDE.md](docs/GUIDE.md#building-from-source).
 conda activate telekinesis-illusion
 python build_wheels.py
 ./dev_reinstall.sh    # Windows: "C:\Program Files\Git\bin\bash.exe" dev_reinstall.sh
+```
+
+`build_wheels.py` expects the `illusion` checkout to sit next to this repo, at
+`../illusion`. If yours lives elsewhere, point `ILLUSION_REPO` at its root:
+
+```bash
+ILLUSION_REPO=/path/to/illusion python build_wheels.py
 ```
 
 ## Documentation

@@ -1,6 +1,6 @@
 """Shared base mixin for every node kind in the Illusion Randomizer tree."""
 
-from ..names import asset_names, asset_names_for_role, parse_names
+from ..names import asset_names_for_role, parse_names
 from ..node_tree import IllusionRandomizerTree
 
 
@@ -27,34 +27,21 @@ class IllusionRandomizerNodeBase:
         self.use_custom_color = True
         self.color = self.node_color
 
-    def draw_target_selector(
-        self, layout, prop_name="target_objects", label="Target Objects"
-    ):
-        """Draws the node's target-object list as toggles over the Asset nodes
-        present in this tree, instead of a free-text field. See targets.py for
-        why this is an operator per name rather than a multi-select enum."""
-        self.draw_checkbox_list(
-            layout,
-            prop_name,
-            asset_names(self.id_data),
-            label,
-            empty_message="Add & name an Asset node first",
-            orphan_message="Not matching any Asset:",
-        )
-
-    def draw_role_targets(self, layout, label="Target Objects"):
+    def draw_role_targets(self, layout, label="Target Objects", role=None):
         """Draws the target objects this node applies to, derived read-only
-        from the Asset nodes carrying self.role.
+        from the Asset nodes carrying `role` (self.role when not given).
 
-        The role-scoped randomizers (Instance/Material) exist once per
+        The role-scoped randomizers (Instance/Material/Pose) exist once per
         supercategory because that's how BinPickingWorker._add_randomizers()
         builds them - their targets follow from the Asset roles rather than
         being picked per node, so this is a display, not an editor."""
-        names = asset_names_for_role(self.id_data, self.role)
+        if role is None:
+            role = self.role
+        names = asset_names_for_role(self.id_data, role)
         box = layout.box()
         box.label(text=label)
         if not names:
-            box.label(text=f"No Asset node with role '{self.role}'", icon="ERROR")
+            box.label(text=f"No Asset node with role '{role}'", icon="ERROR")
             return
         col = box.column(align=True)
         for name in names:

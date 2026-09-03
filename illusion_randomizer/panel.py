@@ -47,7 +47,15 @@ class ILLUSION_PT_randomizer_tools(bpy.types.Panel):
             box = layout.box()
             box.label(text=asset_problem, icon="ERROR")
             box.label(text="Set it on the Worker / Output node or in Preferences")
-        layout.operator("illusion.randomizer_load_assets", icon="IMPORT")
+        # Highlighted the way Change Scene is: an instance-count edit is baked
+        # in at import, so it stays invisible however often the scene is
+        # re-randomized.
+        reload_needed = stages.reload_needed()
+        load = layout.row(align=True)
+        load.alert = reload_needed
+        load.operator("illusion.randomizer_load_assets", icon="IMPORT")
+        if reload_needed:
+            layout.label(text="Instance counts need Load Assets", icon="INFO")
         # Preview Scene keeps the composition and only re-rolls poses/camera;
         # Change Scene re-rolls everything. Change Scene comes second because
         # it's the one you reach for less often once a scene is composed.

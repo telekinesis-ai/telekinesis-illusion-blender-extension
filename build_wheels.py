@@ -47,7 +47,7 @@ MANIFEST_PATH = EXT_DIR / "blender_manifest.toml"
 # This repo is a sibling of the illusion checkout it packages, so the default
 # is ../illusion. Override with ILLUSION_REPO when it lives elsewhere.
 ILLUSION_REPO = Path(
-    os.environ.get("ILLUSION_REPO") or HERE.parent / "illusion"
+    os.environ.get("ILLUSION_REPO") or HERE.parent / "telekinesis-illusion"
 ).resolve()
 
 # Vendored/modified fork, not the public PyPI "blenderproc" package - must be

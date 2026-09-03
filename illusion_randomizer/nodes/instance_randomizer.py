@@ -11,6 +11,7 @@ import bpy
 
 from ._base import IllusionRandomizerNodeBase
 from ..live import on_tunable_change
+from ..names import asset_instance_capacity
 from .asset import ROLE_ITEMS
 
 
@@ -55,6 +56,15 @@ class IllusionInstanceRandomizerNode(IllusionRandomizerNodeBase, bpy.types.Node)
         # at the node instead of failing deep inside a preview run.
         if self.min_num_total_objects > self.max_num_total_objects:
             layout.label(text="Min Total exceeds Max Total", icon="ERROR")
+        # Same reasoning for the other half of that raise: the randomizer caps
+        # Max Total at the copies the Asset nodes provide, so a Min Total above
+        # that is unsatisfiable however the counts are written.
+        capacity = asset_instance_capacity(self.id_data, self.role)
+        if self.min_num_total_objects > capacity:
+            layout.label(
+                text=f"Min Total exceeds the {capacity} copies the Asset nodes provide",
+                icon="ERROR",
+            )
 
     def to_spec_dict(self) -> dict:
         return {

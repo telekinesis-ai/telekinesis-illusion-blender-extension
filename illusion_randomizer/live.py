@@ -39,6 +39,14 @@ def on_tunable_change(self, context):
     mark_dirty()
 
 
+def on_reload_required(self, context):
+    """`update=` callback for node fields that are baked into the imported
+    models, so re-randomizing can never apply them. Only records the edit - the
+    panel highlights Load Assets until it runs, and re-importing on every
+    keystroke is exactly what must not happen."""
+    stages.mark_reload_needed()
+
+
 def mark_dirty():
     global _dirty, _timer_pending
     _dirty = True

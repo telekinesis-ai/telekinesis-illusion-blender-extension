@@ -5,12 +5,17 @@ data structure, so this node only supports the two concrete strategies
 BinPickingWorker actually builds closures for (random box sampling, grid
 placement) rather than arbitrary pose-sampling code - spec_io.py constructs
 the matching closure from these fields, mirroring
-workers/bin_picking_worker.py's _add_randomizers()."""
+workers/bin_picking_worker.py's _add_randomizers().
+
+Which objects get posed is not picked here: the worker builds this randomizer
+from the Asset nodes with role 'part', and a second one from the distractors,
+so the node shows those targets read-only."""
 
 import bpy
 
 from ._base import IllusionRandomizerNodeBase
 from ..live import on_tunable_change
+from ..names import asset_instance_capacity, asset_names_for_role
 
 STRATEGY_ITEMS = (
     ("random", "Random", "Uniform box sampling, optionally constrained to a surface"),
@@ -24,11 +29,6 @@ class IllusionPoseRandomizerNode(IllusionRandomizerNodeBase, bpy.types.Node):
     bl_icon = "ORIENTATION_GIMBAL"
     node_color = (0.20, 0.36, 0.26)
 
-    target_objects: bpy.props.StringProperty(
-        name="Target Objects",
-        description="Comma-separated Object Name(s) (from Asset nodes) whose pose this randomizes, e.g. 'part_1'",
-        update=on_tunable_change,
-    )
     strategy: bpy.props.EnumProperty(
         name="Strategy",
         description="How to place target objects each scene",
@@ -129,8 +129,36 @@ class IllusionPoseRandomizerNode(IllusionRandomizerNodeBase, bpy.types.Node):
         update=on_tunable_change,
     )
 
+    def _visible_part_ceiling(self) -> int:
+        """Most parts that can be visible in one scene.
+
+        The part Instance Count Randomizer's Max Total, capped by the copies the
+        Asset nodes provide - the same clamp ObjectInstanceRandomizer applies at
+        randomize time."""
+        capacity = asset_instance_capacity(self.id_data, "part")
+        for node in self.id_data.nodes:
+            if (
+                node.bl_idname == "IllusionInstanceRandomizerNode"
+                and node.role == "part"
+            ):
+                return min(node.max_num_total_objects, capacity)
+        return capacity
+
     def draw_buttons(self, context, layout):
-        self.draw_target_selector(layout)
+        self.draw_role_targets(layout, role="part")
+        # BinPickingWorker gives the distractors their own pose randomizer,
+        # always with the random sampler - so they follow these settings under
+        # the random strategy but are never placed on the grid.
+        distractors = asset_names_for_role(self.id_data, "distractor")
+        if distractors:
+            box = layout.box()
+            if self.strategy == "grid":
+                box.label(text="Distractors (placed randomly, not on the grid)")
+            else:
+                box.label(text="Distractors (placed with these settings)")
+            col = box.column(align=True)
+            for name in distractors:
+                col.label(text=name, icon="MESH_DATA")
         layout.prop(self, "strategy")
         if self.strategy == "random":
             layout.prop(self, "sample_on_surface")
@@ -145,6 +173,18 @@ class IllusionPoseRandomizerNode(IllusionRandomizerNodeBase, bpy.types.Node):
             row.prop(self, "grid_rows")
             row.prop(self, "grid_cols")
             row.prop(self, "grid_layers")
+            # The sampler hands out cell centres in order and starts over once
+            # it runs out, so parts beyond the last cell land on top of earlier
+            # ones - nothing downstream errors, hence the warning here.
+            cells = self.grid_rows * self.grid_cols * self.grid_layers
+            parts = self._visible_part_ceiling()
+            if parts > cells:
+                layout.label(
+                    text=f"{cells} cells for up to {parts} parts - cells get reused",
+                    icon="ERROR",
+                )
+            else:
+                layout.label(text=f"{cells} cells")
             layout.prop(self, "grid_layer_spacing")
             layout.prop(self, "grid_shuffle")
             layout.prop(self, "grid_xy_jitter")
@@ -153,11 +193,7 @@ class IllusionPoseRandomizerNode(IllusionRandomizerNodeBase, bpy.types.Node):
             row.prop(self, "grid_z_rotation_range_max")
 
     def to_spec_dict(self) -> dict:
-        target_objects = [
-            n.strip() for n in self.target_objects.split(",") if n.strip()
-        ]
         spec = {
-            "target_objects": target_objects,
             "strategy": self.strategy,
         }
         if self.strategy == "random":

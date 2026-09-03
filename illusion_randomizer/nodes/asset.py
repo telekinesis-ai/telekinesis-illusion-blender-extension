@@ -3,7 +3,7 @@
 
 import bpy
 
-from ..live import on_tunable_change
+from ..live import on_reload_required, on_tunable_change
 from ._base import IllusionRandomizerNodeBase
 
 ROLE_ITEMS = (
@@ -74,15 +74,23 @@ class IllusionAssetNode(IllusionRandomizerNodeBase, bpy.types.Node):
     )
     min_number_instances: bpy.props.IntProperty(
         name="Min Instances",
-        description="Fewest copies of this asset that may be spawned in a scene",
+        description=(
+            "Fewest copies of this asset that may be spawned in a scene. Baked in when "
+            "the model is imported - click Load Assets to apply a change"
+        ),
         default=1,
         min=0,
+        update=on_reload_required,
     )
     max_number_instances: bpy.props.IntProperty(
         name="Max Instances",
-        description="Most copies of this asset that may be spawned in a scene",
+        description=(
+            "Most copies of this asset that may be spawned in a scene, and how many copies "
+            "get created on import. Click Load Assets to apply a change"
+        ),
         default=1,
         min=0,
+        update=on_reload_required,
     )
     active_in_simulation: bpy.props.BoolProperty(
         name="Active In Simulation",

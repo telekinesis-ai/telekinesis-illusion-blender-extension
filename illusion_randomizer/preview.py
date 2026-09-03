@@ -238,9 +238,13 @@ def run_randomize(tree, include_physics: bool, mode: str = MODE_CHANGE_SCENE) ->
 
     ctx = worker.get_context()
 
+    # Reported to the user, not just logged: these are edits that silently did
+    # nothing (instance counts and anything else baked in at import), and
+    # log.info only reaches the system console, which is closed by default on
+    # Windows.
+    warnings = []
     if tree is not None:
-        for problem in _sync_worker_from_tree(tree, worker):
-            log.info(problem)
+        warnings.extend(_sync_worker_from_tree(tree, worker))
         _log_effective_pose_config(worker)
 
     if mode == MODE_CHANGE_SCENE:
@@ -248,7 +252,7 @@ def run_randomize(tree, include_physics: bool, mode: str = MODE_CHANGE_SCENE) ->
     else:
         _restore_composition(ctx, composition)
 
-    warnings = _randomize_stages(worker, ctx, mode)
+    warnings.extend(_randomize_stages(worker, ctx, mode))
 
     if mode == MODE_CHANGE_SCENE:
         # Snapshot what the instance randomizers just composed, so the next
@@ -281,6 +285,7 @@ def run_randomize(tree, include_physics: bool, mode: str = MODE_CHANGE_SCENE) ->
     physics_node = _find_node(tree, "IllusionPhysicsNode") if tree is not None else None
     if include_physics and physics_node is not None and physics_node.active:
         p = physics_node.to_spec_dict()
+        tree_name = tree.name
         bproc.object.simulate_physics_and_fix_final_poses(
             random.uniform(*p["min_simulation_time_range"]),
             random.uniform(*p["max_simulation_time_range"]),
@@ -292,6 +297,15 @@ def run_randomize(tree, include_physics: bool, mode: str = MODE_CHANGE_SCENE) ->
             p["verbose"],
             p["use_volume_com"],
         )
+        # That call runs inside BlenderProc's UndoAfterExecution, which ends on
+        # bpy.ops.ed.undo() - and an undo frees and re-reads datablocks, so
+        # every Python reference held across it can come back freed. BlenderProc
+        # refreshes its own wrappers by name afterwards; `tree` is not one of
+        # them, so it has to be re-resolved the same way. Skipping this made the
+        # first Change Scene after Load Assets die on 'StructRNA of type
+        # IllusionRandomizerTree has been removed' at the viz rebuild below,
+        # after the scene had already been composed.
+        tree = refs.valid_or_none(bpy.data.node_groups.get(tree_name))
 
     # Rebuilt after randomizing so the volumes reflect the poses just sampled
     # (the camera volume depends on the visible objects' bounding box).
@@ -405,8 +419,9 @@ class ILLUSION_OT_load_assets(bpy.types.Operator):
         # Preview Scene to preserve until Change Scene has run once.
         _state["composition"] = None
         # The whole spec was just baked into a new worker, so nothing is
-        # waiting on a Change Scene any more.
+        # waiting on a Change Scene or a reload any more.
         stages.clear_pending()
+        stages.clear_reload_needed()
         self.report({"INFO"}, "Loaded assets - click Change Scene to compose a scene")
         return {"FINISHED"}
 

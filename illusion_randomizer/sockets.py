@@ -2,9 +2,9 @@
 
 Only one socket type exists: a flow socket expressing execution order between
 randomizer nodes (mirrors `Randomizer.add_edge`/`_topological_order`). Node
-parameters like `target_objects` are ordinary properties on the node, not
-sockets, matching how the YAML spec already expresses them as plain name
-strings.
+parameters like a Material Randomizer's `types` are ordinary properties on the
+node, not sockets, matching how the YAML spec already expresses them as plain
+name strings.
 """
 
 import bpy
