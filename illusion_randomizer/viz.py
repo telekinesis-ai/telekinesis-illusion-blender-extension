@@ -251,7 +251,9 @@ def build_camera_viz(illusion_ctx, cam_node):
         for frame in range(views):
             scene.frame_set(frame)
             _add(
-                _camera_marker(f"Illusion View {frame}", camera.matrix_world.copy()),
+                _camera_marker(
+                    f"Illusion View {frame + 1}", camera.matrix_world.copy()
+                ),
                 color=(1.0, 0.4, 0.2, 1.0),
             )
     finally:

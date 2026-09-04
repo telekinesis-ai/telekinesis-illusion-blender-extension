@@ -110,9 +110,15 @@ class ILLUSION_PT_randomizer_tools(bpy.types.Panel):
             sel = [n for n in tree.nodes if n.select and n.bl_idname in VIZ_BUILDERS]
             shown = ", ".join(n.bl_label for n in sel) if sel else "all nodes"
             layout.label(text=f"Showing: {shown}", icon="RESTRICT_SELECT_OFF")
-        scene = context.scene
-        if scene.frame_end > scene.frame_start:
-            layout.prop(scene, "frame_current", text="View")
+        # Driven off the node rather than the scene frame range: the range is
+        # only clamped during a randomize run, so it is stale (or Blender's
+        # default 1..250) whenever the view count was edited since.
+        cam_node = next(
+            (n for n in tree.nodes if n.bl_idname == "IllusionCameraRandomizerNode"),
+            None,
+        )
+        if cam_node is not None and cam_node.number_of_views > 1:
+            layout.prop(tree, "view_index")
         layout.label(text="Viewport shading: Rendered", icon="SHADING_RENDERED")
 
         layout.separator()

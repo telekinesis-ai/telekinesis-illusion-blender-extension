@@ -12,7 +12,7 @@
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/license-GPL--3.0--or--later-green" />
     </a>
-    <a href="https://www.blender.org/download/lts/4-2/">
+    <a href="https://www.blender.org/download/releases/4-2/">
       <img src="https://img.shields.io/badge/Blender-4.2%20LTS-orange" />
     </a>
     <a href="#requirements">
@@ -21,7 +21,7 @@
   </p>
 
   <p>
-    <a href="https://docs.telekinesis.ai/">Docs</a>
+    <a href="https://docs.telekinesis.ai/data-engine/synthetic-data-generation/overview.html">Docs</a>
     &nbsp;&bull;&nbsp;
     <a href="docs/GUIDE.md">Guide</a>
     &nbsp;&bull;&nbsp;
@@ -49,7 +49,7 @@ Full documentation: [Telekinesis Agentic OS: Illusion](https://docs.telekinesis.
 
 ## Requirements
 
-**Windows x64 and Blender 4.2 LTS only.** Please install Blender 4.2 LTS from the [offical website](https://www.blender.org/download/releases/4-2/). Support for Linux and Mac OS comming soon.
+**Windows x64 and Blender 4.2.23 LTS only.** Please install Blender 4.2.23 LTS from the [offical website](https://www.blender.org/download/releases/4-2/). Support for Linux and Mac OS comming soon!
 
 You also need an `telekinesis-illusion` checkout with its assets on disk - the extension
 ships no 3D assets, and without them the Material Randomizer's type list is
@@ -72,7 +72,17 @@ prefs.asset_directory = r'C:\path\to\illusion\assets'
 bpy.ops.wm.save_userpref()
 ```
 
+## Updating
 
+1. Close Blender.
+2. Download the new `telekinesis_illusion_randomizer-<version>.zip`.
+3. Drag it onto a Blender window, or use **Edit > Preferences > Add-ons > ▼ > Install from Disk…**
+   Do **not** uninstall the old version first — installing over it replaces it.
+4. Restart Blender. Required whenever a release changes the bundled wheels; without it Blender keeps
+   the previously imported `telekinesis` and `blenderproc` modules for the rest of the session.
+
+Your Asset Directory is kept across updates. The installed version is shown in
+**Edit > Preferences > Add-ons > Illusion Randomizer Tree**.
 
 ## Quickstart
 
@@ -102,7 +112,7 @@ See [docs/GUIDE.md](docs/GUIDE.md#building-from-source).
 ```bash
 conda activate telekinesis-illusion
 python build_wheels.py
-./dev_reinstall.sh    # Windows: "C:\Program Files\Git\bin\bash.exe" dev_reinstall.sh
+"C:\Program Files\Git\bin\bash.exe" dev_reinstall.sh
 ```
 
 `build_wheels.py` expects the `illusion` checkout to sit next to this repo, at
@@ -111,6 +121,10 @@ python build_wheels.py
 ```bash
 ILLUSION_REPO=/path/to/illusion python build_wheels.py
 ```
+
+Bump `version` in `illusion_randomizer/blender_manifest.toml` for every release. Nothing in the
+install path enforces it, but it names the built zip and it is the only way a user can tell which
+build they have.
 
 ## Documentation
 
@@ -136,7 +150,7 @@ Bundled third-party wheels and their terms:
 ```bibtex
 @software{telekinesis_illusion_randomizer,
   author = {Telekinesis GmbH},
-  title  = {Telekinesis-Illusion Randomizer Tree: A Blender Node Editor for Synthetic-Data Specs},
+  title  = {Telekinesis-Illusion Randomizer Tree: A Blender Node Editor for Synthetic-Data Generation},
   year   = {2026},
   url    = {https://gitlab.com/telekinesis/blender-extension},
   note   = {GPL-3.0-or-later}

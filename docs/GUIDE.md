@@ -76,8 +76,10 @@ bpy.ops.wm.save_userpref()
 
 - **Camera View** / **Free View** buttons (or `Numpad 0`) toggle the camera framing.
 - Set viewport shading to **Rendered** for real materials + HDRI lighting.
-- Camera poses are keyframed one per view — use the **View** slider (or scrub the
-  timeline) to step through them. The frame range is clamped to your view count.
+- Camera poses are keyframed one per view — use the **View** slider to step
+  through them. Views are numbered from 1, and the slider is capped at the
+  Camera Pose Randomizer's **Number Of Views**. You can also scrub the timeline,
+  whose frames run 0-based, so timeline frame 0 is View 1.
 
 ## Sampling visualizations
 
@@ -210,7 +212,7 @@ conda activate telekinesis-illusion
 python build_wheels.py                # or: ILLUSION_REPO=/path/to/illusion python build_wheels.py
 
 # 2. package + install into Blender (close Blender first!)
-./dev_reinstall.sh                    # Windows: "C:\Program Files\Git\bin\bash.exe" dev_reinstall.sh
+"C:\Program Files\Git\bin\bash.exe" dev_reinstall.sh
 ```
 
 `dev_reinstall.sh` builds the zip into `dist/`, reinstalls it, and checks the

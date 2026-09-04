@@ -22,6 +22,25 @@ LOG_LEVEL_ITEMS = (
 )
 
 
+def _number_of_views(tree) -> int:
+    for node in tree.nodes:
+        if node.bl_idname == "IllusionCameraRandomizerNode":
+            return node.number_of_views
+    return 1
+
+
+def _get_view_index(self):
+    scene = bpy.context.scene
+    view = scene.frame_current - scene.frame_start + 1
+    return min(max(view, 1), _number_of_views(self))
+
+
+def _set_view_index(self, value):
+    scene = bpy.context.scene
+    view = min(max(value, 1), _number_of_views(self))
+    scene.frame_current = scene.frame_start + view - 1
+
+
 class IllusionRandomizerTree(bpy.types.NodeTree):
     bl_idname = "IllusionRandomizerTree"
     bl_label = "Illusion Randomizer Tree"
@@ -58,6 +77,17 @@ class IllusionRandomizerTree(bpy.types.NodeTree):
             "each sampled camera view, and the part drop region"
         ),
         default=False,
+    )
+    view_index: bpy.props.IntProperty(
+        name="View",
+        description=(
+            "Which sampled camera view to show. One camera pose is keyframed per "
+            "view, and the range is capped at the Camera Pose Randomizer's Number "
+            "Of Views"
+        ),
+        min=1,
+        get=_get_view_index,
+        set=_set_view_index,
     )
     live_include_physics: bpy.props.BoolProperty(
         name="Include Physics In Live",
